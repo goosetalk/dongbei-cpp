@@ -140,3 +140,4 @@ dmypy.json
 .git/
 .github/
 x64/
+.vs/
