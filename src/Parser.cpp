@@ -64,15 +64,70 @@ int MiniParser::getPrecision(TokenType type) {
 std::unique_ptr<ProgramNode> MiniParser::parseProgram() {
     auto program = std::make_unique<ProgramNode>();
     while (peek().type != TokenType::END_OF_FILE) {
-        if (peek().type == TokenType::IDENTIFIER) {
-            program->addStatement(parseVarOrAssign());
-        }
-        else if (peek().type == TokenType::KW_SAY) {
-            program->addStatement(parseSay());
+        // 调用统一的语句解析接口
+        auto stmt = parseStatement();
+        if (stmt) {
+            program->addStatement(std::move(stmt));
         }
         else {
+            // 如果解析不出有效的语句，为了防止死循环，吃掉一个 Token
             consume();
         }
     }
     return program;
+}
+
+// 调度中心：根据开头 Token 决定去哪条路
+std::unique_ptr<Node> MiniParser::parseStatement() {
+    TokenType t = peek().type;
+
+    switch (t) {
+    case TokenType::KW_IF:     return parseIf();     // 处理“要是”
+    case TokenType::KW_FROM:   return parseFor();    // 处理“从”
+    case TokenType::KW_SAY:    return parseSay();    // 处理“唠唠”
+    case TokenType::IDENTIFIER: return parseVarOrAssign(); // 处理“变量/赋值”
+    case TokenType::KW_PERIOD:
+        consume(); // 孤零零的句号直接吃掉
+        return nullptr;
+    default:
+        return nullptr;
+    }
+}
+std::unique_ptr<Node> MiniParser::parseIf() {
+    consume(); // 要是
+    auto cond = parseExpression(0);
+    consume(); // 那么
+
+    std::vector<std::unique_ptr<Node>> then_body;
+    // 简单实现：读到“否则”或“。”为止
+    while (peek().type != TokenType::KW_ELSE && peek().type != TokenType::KW_PERIOD) {
+        then_body.push_back(parseStatement());
+    }
+
+    std::vector<std::unique_ptr<Node>> else_body;
+    if (peek().type == TokenType::KW_ELSE) {
+        consume(); // 否则
+        while (peek().type != TokenType::KW_PERIOD) {
+            else_body.push_back(parseStatement());
+        }
+    }
+    consume(); // 。
+    return std::make_unique<IfNode>(std::move(cond), std::move(then_body), std::move(else_body));
+}
+std::unique_ptr<Node> MiniParser::parseFor() {
+    consume(); // 从
+    std::string var = consume().value; // 循环变量名
+    consume(); // 读掉可能存在的“装”或者直接解析起始值
+    auto start_val = parseExpression(0);
+    consume(); // 到
+    auto end_val = parseExpression(0);
+    consume(); // 磨叽
+
+    std::vector<std::unique_ptr<Node>> body;
+    while (peek().type != TokenType::KW_FOR_END) {
+        body.push_back(parseStatement());
+    }
+    consume(); // 磨叽完了
+    consume(); // 。
+    return std::make_unique<ForNode>(var, std::move(start_val), std::move(end_val), std::move(body));
 }

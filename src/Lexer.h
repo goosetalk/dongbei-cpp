@@ -1,3 +1,4 @@
+#pragma once
 #include "Parser.h" // 确保能拿到 Token 和 TokenType
 #include <iostream>
 #include <algorithm>

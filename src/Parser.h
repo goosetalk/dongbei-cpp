@@ -159,5 +159,8 @@ private:
     std::unique_ptr<Node> parseSay();
     std::unique_ptr<Node> parsePrimary();
     std::unique_ptr<Node> parseExpression(int min_precision);
+    std::unique_ptr<Node> parseIf();
+    std::unique_ptr<Node> parseFor();
+    std::unique_ptr<Node> parseStatement();
     int getPrecision(TokenType type);
 };

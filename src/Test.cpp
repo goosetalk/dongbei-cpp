@@ -4,7 +4,7 @@
 int main() {
     // 1. 东北话源码 (你可以尝试更复杂的四则运算)
     // 语义：老王是整数。老王装 (10 + 5 * 2)。唠唠老王。
-    std::string source = "laowang 是 [规整] 活雷锋。 laowang 装 10 加 5 乘 2 。 唠唠 ： laowang 。";
+    std::string source = "从 i 到 1 到 5 磨叽： 唠唠：i。 磨叽完了。";
 
     try {
         // 2. 词法分析 (Lexer) -> 变零件
